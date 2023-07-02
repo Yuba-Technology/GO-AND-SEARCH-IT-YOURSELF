@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go and search it yurself!!!!</title>
+
+    <link href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+    <script src="./lib/jquery/js/jquery-3.6.3.min.js"></script>
+</head>
+
+<body class="container">
+    <h1>Go and search it yurself!!!!</h1>
+    <p>“那你能帮帮我吗？”</p>
+    <p>“自己搜去！”</p>
+
+    <form id="search-text-form">
+        <div class="mb-3">
+            <label for="search-text" class="form-label">搜索用的关键词：</label>
+            <input type="text" class="form-control" id="search-text" placeholder="搜索用的关键词..." name="pswd">
+        </div>
+        <button type="submit" class="btn btn-primary">生成并复制链接</button>
+    </form>
+
+    <script>
+        $(function () {
+            $('#search-text-form').submit(function (e) {
+                e.preventDefault();
+                const search_text = $('#search-text').val();
+                const url = `https://yuba.tech/GO-AND-SEARCH-IT-YOURSELF/baidu.html?wd=${encodeURIComponent(search_text)}`;
+                // Copy to clipboard
+                const input = document.createElement('input');
+                input.setAttribute('readonly', 'readonly');
+                input.setAttribute('value', url);
+                document.body.appendChild(input);
+                input.select();
+                input.setSelectionRange(0, 9999);
+                if (document.execCommand('copy')) {
+                    document.execCommand('copy');
+                    alert('复制成功');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
