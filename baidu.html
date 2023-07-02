@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go and search it yurself!!!!</title>
+
+    <link href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+    <script src="./lib/jquery/js/jquery-3.6.3.min.js"></script>
+</head>
+
+<body class="search-container text-center">
+    <img aria-hidden="true" src="//www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png" width="270"
+        height="129">
+
+    <form action="https://baidu.com/s?" class="mt-4">
+        <div class="input-group mb-3">
+            <input type="text" id="search-input" class="form-control" name="wd">
+            <button id="search-btn" disabled="">百度一下</button>
+        </div>
+    </form>
+
+
+    <img id="pointer" class="pointer" src="images/pointer.png" style="display: none;">
+    <img id="pointer-active" class="pointer" src="images/pointer-active.png" style="display: none;">
+
+    <style>
+        .search-container {
+            width: 654px;
+            max-width: 90%;
+            height: 100%;
+            margin: 0 auto;
+            margin-top: 40px;
+            text-align: left;
+        }
+
+        #search-input {
+            user-select: none;
+            pointer-events: none;
+
+            max-width: 100%;
+            padding-right: 87px;
+            height: 16px;
+            padding: 12px 16px;
+            padding-right: 16px;
+            font-size: 16px;
+            margin: 0;
+            vertical-align: top;
+            outline: 0;
+            box-shadow: none;
+            border-radius: 10px 0 0 10px;
+            border: 2px solid #c4c7ce;
+            border-right: none;
+            background: #fff !important;
+            color: #222;
+            overflow: hidden;
+            box-sizing: content-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #search-input:focus {
+            border-color: #4e71f2;
+            /* box-shadow: 0 0 0 2px rgba(78, 110, 242, 0.2); */
+        }
+
+        #search-btn {
+            cursor: pointer;
+            width: 108px;
+            height: 44px;
+            line-height: 45px;
+            line-height: 44px\9;
+            padding: 0;
+            background: 0 0;
+            background-color: rgba(0, 0, 0, 0);
+            background-color: #4e6ef2;
+            border-radius: 0 10px 10px 0;
+            font-size: 17px;
+            color: #fff;
+            box-shadow: none;
+            font-weight: 400;
+            border: none;
+            outline: 0;
+        }
+
+        #search-btn.active {
+            background-color: #4662d9;
+        }
+
+        .pointer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50px;
+            z-index: 99999;
+        }
+    </style>
+
+    <script>
+        /**
+         * 获取URL参数值
+         * @param {string} para URL参数名
+         * @returns {Array} URL参数值数组
+         */
+        function getUrlParam(para) {
+            var search = location.search; //页面URL的查询部分字符串
+            var arrPara = new Array(); //参数数组。数组单项为包含参数名和参数值的字符串，如“para=value”
+            var arrVal = new Array(); //参数值数组。用于存储查找到的参数值
+
+            if (search != "") {
+                var index = 0;
+                search = search.substr(1); //去除开头的“?”
+                arrPara = search.split("&");
+
+                for (i in arrPara) {
+                    var paraPre = para + "="; //参数前缀。即参数名+“=”，如“para=”
+                    if (
+                        arrPara[i].indexOf(paraPre) == 0 &&
+                        paraPre.length < arrPara[i].length
+                    ) {
+                        arrVal[index] = decodeURI(arrPara[i].substr(paraPre.length)); //顺带URI解码避免出现乱码
+                        index++;
+                    }
+                }
+            }
+
+            if (arrVal.length == 0) {
+                return [];
+            } else {
+                return arrVal;
+            }
+        }
+
+        async function movePointer($target, duration = 1500) {
+            return new Promise(async (resolve, reject) => {
+                const $pointer = $("#pointer");
+                const $pointerActive = $("#pointer-active");
+                const $pointerInactive = $("#pointer-inactive");
+
+                const targetOffset = $target.offset();
+                const targetHeight = $target.height();
+                const targetWidth = $target.width();
+                const pointerHeight = $pointer.height();
+                const pointerWidth = $pointer.width();
+
+                const pointerTop = targetOffset.top + targetHeight / 2 - pointerHeight / 2 + 25;
+                const pointerLeft = targetOffset.left + targetWidth / 2 - pointerWidth / 2;
+
+                $pointer.show();
+                $pointerActive.css({
+                    top: pointerTop,
+                    left: pointerLeft
+                });
+
+                await $pointer.animate(
+                    {
+                        left: pointerLeft,
+                        top: pointerTop
+                    },
+                    duration
+                ).promise();
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+                $pointerActive.show();
+                $pointer.hide();
+                // 聚焦元素
+                $target.focus();
+                // 使元素展现出active状态
+                $target.addClass("active");
+                await new Promise(resolve => setTimeout(resolve, 500));
+                $pointer.show();
+                $pointerActive.hide();
+                $target.removeClass("active");
+                await new Promise(resolve => setTimeout(resolve, 500));
+                $pointer.hide();
+
+                // 回归原位
+                $pointer.css({
+                    top: 0,
+                    left: 0
+                });
+
+                resolve();
+            });
+        }
+
+        function fillWd(wd, $element) {
+            return new Promise(async (resolve, reject) => {
+                const words = wd.split("");
+                for (word of words) {
+                    $element.val($element.val() + word);
+                    if (/[^\x00-\xff]/.test(word)) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+                resolve();
+            });
+        }
+
+        $(document).ready(async () => {
+
+            // 1. 获取URL参数：wd
+            // 2. 向#search-input中填充wd参数值,
+            //  动画为：如果下一个字符为中日韩文，则延迟0.5s后再填充，否则延迟0.1s后填充。伴随光标闪烁的打字效果。
+            // 3. 填充完毕后，提交表单。
+
+            // 1. 获取URL参数：wd
+            const wd = getUrlParam("wd")[0] || "百度一下";
+
+            // 2. 向#search-input中填充wd参数值,
+            //  动画为：如果下一个字符为中日韩文，则延迟0.5s后再填充，否则延迟0.1s后填充。伴随光标闪烁的打字效果。
+            const $searchInput = $("#search-input");
+            const wdLength = wd.length;
+            let currentLength = 0;
+            // 清空输入框
+            $searchInput.val("");
+
+            await movePointer($searchInput);
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await fillWd(wd, $searchInput);
+            await movePointer($("#search-btn"));
+            // 访问百度
+            window.location.href = "https://baidu.com/s?wd=" + encodeURIComponent(wd);
+            // $("form").submit();
+            // console.log("pointer moved");
+            // fillWd();
+        });
+    </script>
+
+
+</body>
+
+</html>
