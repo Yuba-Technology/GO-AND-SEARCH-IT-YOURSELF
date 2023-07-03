@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
@@ -12,38 +12,69 @@
     <script src="./lib/jquery/js/jquery-3.6.3.min.js"></script>
 </head>
 
-<body class="container">
-    <h1>Go and search it yurself!!!!</h1>
-    <p>“那你能帮帮我吗？”</p>
-    <p>“自己搜去！”</p>
+<body class="d-flex flex-column">
+    <main class="container mt-4">
+        <h1>Go and search it yurself!!!!</h1>
+        <p>“那你能帮帮我吗？”</p>
+        <p>“自己搜去！”</p>
 
-    <form id="search-text-form">
-        <div class="mb-3">
-            <label for="search-text" class="form-label">搜索用的关键词：</label>
-            <input type="text" class="form-control" id="search-text" placeholder="搜索用的关键词..." name="pswd">
-        </div>
-        <button type="submit" class="btn btn-primary">生成并复制链接</button>
-    </form>
+        <h2>使用说明</h2>
+
+        <p>在下面的输入框中输入你想要搜索的关键词，然后点击“生成并复制链接”按钮，就会自动生成对应链接。</p>
+        <p>如果启用“只教一次”模式，那么网页将会在你第二次访问同一关键词时对你进行嘲讽。</p>
+
+        <form id="search-text-form" class="container">
+            <div class="mb-3">
+                <label for="search-text" class="form-label">搜索用的关键词：</label>
+                <input type="text" class="form-control" id="search-text" placeholder="搜索用的关键词..." name="pswd">
+            </div>
+
+            <div class="form-check form-switch">
+                <input id="teach-only-once" class="form-check-input" type="checkbox" id="mySwitch" name="darkmode"
+                    value="yes" checked>
+                <label class="form-check-label" for="teach-only-once">只教一次</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3">生成并复制链接</button>
+        </form>
+    </main>
+
+    <footer class="mt-auto">
+        <nav class="navbar navbar-light">
+            <ul class="navbar-nav d-inline-flex flex-row flex-wrap mx-auto">
+                <li class="nav-item">
+                    <a class="nav-link mx-2" href="https://github.com/YubaC/GO-AND-SEARCH-IT-YOURSELF/">Github</a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link" href="index.html">生成器</a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link" href="https://yuba.tech">煜霸科技</a>
+                </li>
+            </ul>
+        </nav>
+    </footer>
+
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 
     <script>
-        $(function () {
-            $('#search-text-form').submit(function (e) {
-                e.preventDefault();
-                const search_text = $('#search-text').val();
-                const url = `https://yuba.tech/GO-AND-SEARCH-IT-YOURSELF/baidu.html?wd=${encodeURIComponent(search_text)}`;
-                // Copy to clipboard
-                const input = document.createElement('input');
-                input.setAttribute('readonly', 'readonly');
-                input.setAttribute('value', url);
-                document.body.appendChild(input);
-                input.select();
-                input.setSelectionRange(0, 9999);
-                if (document.execCommand('copy')) {
-                    document.execCommand('copy');
-                    alert('复制成功');
-                }
-            });
+        $("#search-text-form").submit(function (e) {
+            e.preventDefault();
+            const searchText = $('#search-text').val();
+            const teachOnlyOnce = $('#teach-only-once').prop('checked');
+            const url = `https://yuba.tech/GO-AND-SEARCH-IT-YOURSELF/baidu.html?wd=${encodeURIComponent(searchText)}&second=${!teachOnlyOnce}`;
+            // Copy to clipboard
+            navigator.clipboard.writeText(url);
+            // Show success message
+            alert('复制成功！')
         });
+        ;
     </script>
 </body>
 

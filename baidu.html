@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
@@ -12,22 +12,46 @@
     <script src="./lib/jquery/js/jquery-3.6.3.min.js"></script>
 </head>
 
-<body class="search-container text-center">
-    <img aria-hidden="true" src="//www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png" width="270"
-        height="129">
+<body class="d-flex flex-column">
+    <main class="search-container text-center">
+        <img aria-hidden="true" src="https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png" width="270"
+            height="129">
 
-    <form action="https://baidu.com/s?" class="mt-4">
-        <div class="input-group mb-3">
-            <input type="text" id="search-input" class="form-control" name="wd">
-            <button id="search-btn" disabled="">百度一下</button>
-        </div>
-    </form>
+        <form id="search-form" action="https://baidu.com/s" method="get" class="mt-4">
+            <div class="input-group mb-3">
+                <input type="text" id="search-input" class="form-control" name="wd">
+                <button id="search-btn" disabled="">百度一下</button>
+            </div>
+        </form>
 
+        <button id="teach-twice" class="btn btn-primary" style="display: none;">我没学会，请再教我一遍</button>
 
-    <img id="pointer" class="pointer" src="images/pointer.png" style="display: none;">
-    <img id="pointer-active" class="pointer" src="images/pointer-active.png" style="display: none;">
+        <img id="pointer" class="pointer" src="images/pointer.png" style="display: none;">
+        <img id="pointer-active" class="pointer" src="images/pointer-active.png" style="display: none;">
+    </main>
 
+    <footer class="mt-auto">
+        <nav class="navbar navbar-light">
+            <ul class="navbar-nav d-inline-flex flex-row flex-wrap mx-auto">
+                <li class="nav-item">
+                    <a class="nav-link mx-2" href="https://github.com/YubaC/GO-AND-SEARCH-IT-YOURSELF/">Github</a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link" href="index.html">生成器</a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link" href="https://yuba.tech">煜霸科技</a>
+                </li>
+            </ul>
+        </nav>
+    </footer>
     <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
         .search-container {
             width: 654px;
             max-width: 90%;
@@ -206,8 +230,27 @@
             });
         }
 
-        $(document).ready(async () => {
+        function setCookie(cname, cvalue, exdays) {
+            var d = new Date();
+            d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
+            var expires = "expires=" + d.toGMTString();
+            document.cookie =
+                cname + "=" + cvalue + "; " + expires + "; SameSite=None; Secure";
+        }
 
+        function getCookie(cname) {
+            var name = cname + "=";
+            var ca = document.cookie.split(";");
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i].trim();
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+
+        $(document).ready(() => {
             // 1. 获取URL参数：wd
             // 2. 向#search-input中填充wd参数值,
             //  动画为：如果下一个字符为中日韩文，则延迟0.4s后再填充，否则延迟0.1s后填充。伴随光标闪烁的打字效果。
@@ -215,24 +258,49 @@
 
             // 1. 获取URL参数：wd
             const wd = getUrlParam("wd")[0] || "百度一下";
-
-            // 2. 向#search-input中填充wd参数值,
-            //  动画为：如果下一个字符为中日韩文，则延迟0.5s后再填充，否则延迟0.1s后填充。伴随光标闪烁的打字效果。
+            // 是否开启第二次嘲讽模式
+            const allowSecond = (getUrlParam("second")[0] || "true") === "true";
             const $searchInput = $("#search-input");
-            const wdLength = wd.length;
-            let currentLength = 0;
+            const $searchBtn = $("#search-btn");
+            const $teachTwice = $("#teach-twice");
+
             // 清空输入框
             $searchInput.val("");
 
-            await movePointer($searchInput);
-            await new Promise(resolve => setTimeout(resolve, 500));
-            await fillWd(wd, $searchInput);
-            await movePointer($("#search-btn"));
-            // 访问百度
-            // window.location.href = "https://baidu.com/s?wd=" + encodeURIComponent(wd);
-            // $("form").submit();
-            // console.log("pointer moved");
-            // fillWd();
+            async function showAnimation() {
+                await movePointer($searchInput);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await fillWd(wd, $searchInput);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await movePointer($searchBtn);
+                // 访问百度
+                $("#search-form").submit();
+            }
+
+            // 查找同一关键词的cookie
+            const cookieName = `search-${wd}`;
+            const cookieValue = getCookie(cookieName);
+            // 如果找到了cookie，说明已经教过一次了
+            const teached = cookieValue !== "";
+
+            if (!allowSecond && teached) {
+                $searchInput.attr("placeholder", "只教一遍，包教不包会，自己百度吧");
+                // 解禁表单
+                $searchBtn.removeAttr("disabled");
+                $searchInput.css("pointer-events", "auto");
+                $teachTwice.show();
+                $teachTwice.click(() => {
+                    $searchInput.attr("placeholder", "");
+                    $teachTwice.hide();
+                    $searchBtn.attr("disabled", "");
+                    $searchInput.css("pointer-events", "none");
+                    showAnimation();
+                });
+            } else {
+                // 设置cookie
+                setCookie(cookieName, "true", 365);
+                showAnimation();
+            }
         });
     </script>
 
