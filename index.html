@@ -70,9 +70,19 @@
             const teachOnlyOnce = $('#teach-only-once').prop('checked');
             const url = `https://yuba.tech/GO-AND-SEARCH-IT-YOURSELF/baidu.html?wd=${encodeURIComponent(searchText)}&second=${!teachOnlyOnce}`;
             // Copy to clipboard
-            navigator.clipboard.writeText(url);
-            // Show success message
-            alert('复制成功！')
+            const input = document.createElement('input');
+            input.setAttribute('readonly', 'readonly');
+            input.setAttribute('value', url);
+            document.body.appendChild(input);
+            input.select();
+            if (document.execCommand('copy')) {
+                document.execCommand('copy');
+                alert('复制成功！');
+                // Delete from DOM
+                document.body.removeChild(input);
+            } else {
+                alert('复制失败，请手动复制！');
+            }
         });
         ;
     </script>
