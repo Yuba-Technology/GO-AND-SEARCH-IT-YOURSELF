@@ -61,6 +61,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        #search-input.active,
         #search-input:focus {
             border-color: #4e71f2;
             /* box-shadow: 0 0 0 2px rgba(78, 110, 242, 0.2); */
@@ -165,38 +166,42 @@
                 await new Promise(resolve => setTimeout(resolve, 500));
                 $pointerActive.show();
                 $pointer.hide();
-                // 聚焦元素
-                $target.focus();
                 // 使元素展现出active状态
                 $target.addClass("active");
-                await new Promise(resolve => setTimeout(resolve, 500));
+                $target.focus();
+                await new Promise(resolve => setTimeout(resolve, 300));
                 $pointer.show();
                 $pointerActive.hide();
                 $target.removeClass("active");
                 await new Promise(resolve => setTimeout(resolve, 500));
                 $pointer.hide();
 
-                // 回归原位
-                $pointer.css({
-                    top: 0,
-                    left: 0
-                });
+                // // 回归原位
+                // $pointer.css({
+                //     top: 0,
+                //     left: 0
+                // });
 
                 resolve();
             });
         }
 
         function fillWd(wd, $element) {
+            $element.addClass("active");
             return new Promise(async (resolve, reject) => {
                 const words = wd.split("");
                 for (word of words) {
                     $element.val($element.val() + word);
+                    $element[0].setSelectionRange($element.val().length, $element.val().length);
+
+                    // 如果下一个字符为中日韩文，则延迟0.4s后再填充，否则延迟0.1s后填充
                     if (/[^\x00-\xff]/.test(word)) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
+                        await new Promise(resolve => setTimeout(resolve, 400));
                     } else {
                         await new Promise(resolve => setTimeout(resolve, 100));
                     }
                 }
+                $element.removeClass("active");
                 resolve();
             });
         }
@@ -205,7 +210,7 @@
 
             // 1. 获取URL参数：wd
             // 2. 向#search-input中填充wd参数值,
-            //  动画为：如果下一个字符为中日韩文，则延迟0.5s后再填充，否则延迟0.1s后填充。伴随光标闪烁的打字效果。
+            //  动画为：如果下一个字符为中日韩文，则延迟0.4s后再填充，否则延迟0.1s后填充。伴随光标闪烁的打字效果。
             // 3. 填充完毕后，提交表单。
 
             // 1. 获取URL参数：wd
@@ -224,7 +229,7 @@
             await fillWd(wd, $searchInput);
             await movePointer($("#search-btn"));
             // 访问百度
-            window.location.href = "https://baidu.com/s?wd=" + encodeURIComponent(wd);
+            // window.location.href = "https://baidu.com/s?wd=" + encodeURIComponent(wd);
             // $("form").submit();
             // console.log("pointer moved");
             // fillWd();
